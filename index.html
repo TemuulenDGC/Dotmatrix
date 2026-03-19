@@ -2,54 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DOTMATRIX // REFINED</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DOTMATRIX // PRO</title>
     <style>
-        :root { --accent: #00ff88; --bg: #000; }
-        body { margin: 0; background: var(--bg); overflow: hidden; font-family: 'Inter', sans-serif; cursor: none; }
+        :root { --accent: #00ff88; --glass: rgba(15, 15, 15, 0.85); --red: #ff4444; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Inter', sans-serif; touch-action: none; }
         canvas { display: block; width: 100vw; height: 100vh; }
         
-        #ui { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 100; 
-              background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 30px 40px; 
-              box-sizing: border-box; transition: 0.6s ease; opacity: 1; pointer-events: auto; }
+        #ui { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); 
+              width: 92%; max-width: 550px; z-index: 100; backdrop-filter: blur(15px);
+              background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
+              border-radius: 16px; padding: 18px; box-sizing: border-box; 
+              transition: 0.6s cubic-bezier(0.2, 1, 0.2, 1); opacity: 1; }
         
-        body.hide-ui #ui { opacity: 0; transform: translateY(30px); pointer-events: none; }
-        body.show-ui { cursor: default; }
+        body.hide-ui #ui { opacity: 0; transform: translate(-50%, 40px); pointer-events: none; }
 
-        .progress-container { width: 100%; height: 4px; background: #222; cursor: pointer; margin-bottom: 20px; }
-        #progress-bar { height: 100%; background: var(--accent); width: 0%; pointer-events: none; }
+        .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); 
+                             margin-bottom: 15px; border-radius: 2px; cursor: pointer; }
+        #progress-bar { height: 100%; background: var(--accent); width: 0%; border-radius: 2px; }
 
-        .controls { display: flex; align-items: center; justify-content: space-between; color: white; }
-        .group { display: flex; align-items: center; gap: 20px; }
+        .controls { display: flex; flex-direction: column; gap: 15px; color: white; }
+        .row { display: flex; align-items: center; justify-content: space-between; }
+        .group { display: flex; align-items: center; gap: 8px; }
         
-        button { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; 
-                 padding: 8px 15px; cursor: pointer; font-size: 13px; border-radius: 4px; transition: 0.2s; font-family: monospace; }
-        button:hover { border-color: var(--accent); color: var(--accent); }
-        
-        #drop-zone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-                    display: none; background: rgba(0,255,136,0.05); border: 3px dashed var(--accent); 
-                    z-index: 200; align-items: center; justify-content: center; color: var(--accent); pointer-events: none; }
+        button { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+                 padding: 10px 12px; cursor: pointer; font-size: 10px; border-radius: 6px; 
+                 text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; font-weight: 600; }
+        button:active { background: rgba(255,255,255,0.2); }
+        #recBtn.active { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px rgba(255,68,68,0.3); }
+
+        #init-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
+                       background: #000; display: flex; flex-direction: column; align-items: center; 
+                       justify-content: center; color: var(--accent); font-family: monospace; cursor: pointer; }
     </style>
 </head>
 <body class="show-ui">
 
-    <div id="drop-zone">DROP_VIDEO_FILE</div>
+    <div id="init-overlay" onclick="startSystem()">
+        <div style="border: 1px solid var(--accent); padding: 20px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">▶</div>
+        [ BOOT SYSTEM ]
+    </div>
 
     <div id="ui">
-        <div class="progress-container" id="scrub-bar">
-            <div id="progress-bar"></div>
-        </div>
+        <div class="progress-container" id="scrub-bar"><div id="progress-bar"></div></div>
         <div class="controls">
-            <div class="group">
-                <button onclick="skip(-10)">-10S</button>
-                <button id="playBtn">PLAY</button>
-                <button onclick="skip(10)">+10S</button>
-                <div style="font-size:12px; font-family:monospace;"><span id="cur">0:00</span> / <span id="dur">0:00</span></div>
+            <div class="row">
+                <div class="group">
+                    <button id="playBtn">PLAY</button>
+                    <button onclick="skip(-10)">-10</button>
+                    <button onclick="skip(10)">+10</button>
+                </div>
+                <div class="group">
+                    <button onclick="toggleFS()">[ ]</button>
+                    <button id="recBtn">REC</button>
+                </div>
             </div>
-            <div class="group">
-                <button onclick="toggleMono()" id="monoBtn">MONO: OFF</button>
-                <button id="recBtn" style="border-color:#f44; color:#f44;">REC</button>
-                <button onclick="document.getElementById('file').click()">📂 LOAD</button>
-                <button onclick="toggleFS()">[ ]</button>
+            <div class="row" style="border-top: 1px solid rgba(255,255,255,0.05); pt: 10px;">
+                <button onclick="toggleMono()" id="mBtn" style="flex:1; margin-right:5px;">MONO: OFF</button>
+                <button onclick="document.getElementById('file').click()" style="flex:1; margin-left:5px;">📂 LOAD VIDEO</button>
             </div>
         </div>
         <input type="file" id="file" style="display:none" accept="video/*">
@@ -61,72 +71,57 @@
     <script type="module">
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js';
 
-        let scene, camera, renderer, material, mesh, videoTexture, analyser, dataArray;
-        let isMono = false, isRecording = false, recorder, chunks = [];
+        let scene, camera, renderer, material, mesh, videoTexture, analyser, dataArray, audioCtx;
+        let isRecording = false, recorder, chunks = [];
         const video = document.getElementById('video');
         const playBtn = document.getElementById('playBtn');
+        const recBtn = document.getElementById('recBtn');
 
-        // --- 1. UI & DROP LOGIC ---
-        const dz = document.getElementById('drop-zone');
-        window.addEventListener('dragover', e => { e.preventDefault(); dz.style.display = 'flex'; });
-        dz.addEventListener('dragleave', () => dz.style.display = 'none');
-        dz.addEventListener('drop', e => { e.preventDefault(); dz.style.display = 'none'; handleFile(e.dataTransfer.files[0]); });
+        window.startSystem = () => {
+            document.getElementById('init-overlay').style.display = 'none';
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const src = audioCtx.createMediaElementSource(video);
+                analyser = audioCtx.createAnalyser();
+                src.connect(analyser); analyser.connect(audioCtx.destination);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            }
+            if (video.src) video.play();
+        };
 
-        let idleTimer;
-        function resetTimer() {
-            document.body.classList.remove('hide-ui');
-            document.body.classList.add('show-ui');
-            clearTimeout(idleTimer);
-            if (!video.paused) idleTimer = setTimeout(() => {
-                document.body.classList.add('hide-ui');
-                document.body.classList.remove('show-ui');
-            }, 2500);
-        }
-        window.addEventListener('mousemove', resetTimer);
-
-        // --- 2. THE REFINED ENGINE ---
         function setup() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.z = 2.4;
+            camera.position.z = 2.8;
 
             renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('view'), antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            // Refined Geometry (400x400 for high detail)
-            const geometry = new THREE.PlaneGeometry(5, 3, 400, 400);
+            const geometry = new THREE.PlaneGeometry(5, 3, 240, 240); 
             material = new THREE.ShaderMaterial({
                 uniforms: { u_tex: { value: new THREE.Texture() }, u_audio: { value: 0 }, u_mono: { value: 0.0 } },
                 vertexShader: `
-                    varying vec2 vUv;
-                    varying float vB;
-                    uniform sampler2D u_tex;
-                    uniform float u_audio;
+                    varying vec2 vUv; varying float vB;
+                    uniform sampler2D u_tex; uniform float u_audio;
                     void main() {
-                        vUv = uv;
-                        vec4 t = texture2D(u_tex, uv);
+                        vUv = uv; vec4 t = texture2D(u_tex, uv);
                         vB = (t.r + t.g + t.b) / 3.0;
                         vec3 p = position;
-                        
-                        // REFINED PHYSICS: Reduced push and added subtle wobble
-                        p.z += vB * (0.4 + u_audio * 0.8); 
-                        
-                        // CLAMPED SIZE: Prevents overlapping "blobs"
-                        gl_PointSize = clamp((vB * 6.0) * (1.0 + u_audio), 1.0, 10.0);
+                        p.z += vB * (0.5 + u_audio * 1.2); 
+                        gl_PointSize = clamp((vB * 5.5) * (1.0 + u_audio), 1.0, 7.0);
                         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
                     }
                 `,
                 fragmentShader: `
-                    varying vec2 vUv;
-                    varying float vB;
-                    uniform sampler2D u_tex;
-                    uniform float u_mono;
+                    varying vec2 vUv; varying float vB;
+                    uniform sampler2D u_tex; uniform float u_mono;
                     void main() {
-                        if (vB < 0.12) discard; // Cleaner black levels
+                        if (vB < 0.15) discard;
                         vec4 t = texture2D(u_tex, vUv);
                         if (length(gl_PointCoord - 0.5) > 0.5) discard;
-                        vec3 final = (u_mono > 0.5) ? vec3(vB + 0.15) : t.rgb * (vB + 0.2);
-                        gl_FragColor = vec4(final, 1.0);
+                        vec3 f = (u_mono > 0.5) ? vec3(vB + 0.2) : t.rgb * (vB + 0.3);
+                        gl_FragColor = vec4(f, 1.0);
                     }
                 `,
                 transparent: true
@@ -138,37 +133,33 @@
         }
 
         function handleFile(file) {
-            if(!file || !file.type.startsWith('video/')) return;
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const src = ctx.createMediaElementSource(video);
-            analyser = ctx.createAnalyser();
-            src.connect(analyser); analyser.connect(ctx.destination);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            
+            if(!file) return;
             video.src = URL.createObjectURL(file);
-            video.play();
             videoTexture = new THREE.VideoTexture(video);
             material.uniforms.u_tex.value = videoTexture;
-            video.onloadedmetadata = () => document.getElementById('dur').innerText = fmt(video.duration);
+            if(audioCtx) audioCtx.resume();
+            video.play();
         }
 
         function loop() {
             requestAnimationFrame(loop);
             if (analyser) {
                 analyser.getByteFrequencyData(dataArray);
-                // Tracking Mid-Bass for smoother movement
-                material.uniforms.u_audio.value = (dataArray[4] / 255) * 0.5;
+                material.uniforms.u_audio.value = (dataArray[4] / 255) * 0.6;
             }
             if (!video.paused) {
-                const p = (video.currentTime / video.duration) * 100;
-                document.getElementById('progress-bar').style.width = p + "%";
-                document.getElementById('cur').innerText = fmt(video.currentTime);
+                document.getElementById('progress-bar').style.width = (video.currentTime / video.duration) * 100 + "%";
             }
             renderer.render(scene, camera);
         }
 
-        // --- 3. DOWNLOAD & RECORDING ---
-        document.getElementById('recBtn').onclick = function() {
+        // --- FEATURES ---
+        window.toggleFS = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        };
+
+        recBtn.onclick = () => {
             if (!isRecording) {
                 chunks = [];
                 const stream = document.getElementById('view').captureStream(60);
@@ -177,26 +168,43 @@
                 recorder.onstop = () => {
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-                    a.download = 'DotMatrix_Capture.webm';
+                    a.download = 'Matrix_Render.webm';
                     a.click();
                 };
                 recorder.start();
-                this.innerText = "STOP";
                 isRecording = true;
+                recBtn.innerText = "STOP";
+                recBtn.classList.add('active');
             } else {
                 recorder.stop();
-                this.innerText = "REC";
                 isRecording = false;
+                recBtn.innerText = "REC";
+                recBtn.classList.remove('active');
             }
         };
 
-        const fmt = s => `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,'0')}`;
-        window.toggleMono = () => { isMono = !isMono; material.uniforms.u_mono.value = isMono ? 1.0 : 0.0; document.getElementById('monoBtn').innerText = `MONO: ${isMono ? 'ON' : 'OFF'}`; };
+        let uiTimer;
+        const resetUI = () => {
+            document.body.classList.remove('hide-ui');
+            clearTimeout(uiTimer);
+            if(!video.paused) uiTimer = setTimeout(() => document.body.classList.add('hide-ui'), 3000);
+        };
+        window.addEventListener('touchstart', resetUI);
+        window.addEventListener('mousedown', resetUI);
         window.skip = v => video.currentTime += v;
-        window.toggleFS = () => document.documentElement.requestFullscreen();
-        playBtn.onclick = () => { video.paused ? video.play() : video.pause(); playBtn.innerText = video.paused ? 'PLAY' : 'PAUSE'; resetTimer(); };
+        window.toggleMono = () => {
+            material.uniforms.u_mono.value = material.uniforms.u_mono.value ? 0.0 : 1.0;
+            document.getElementById('mBtn').innerText = material.uniforms.u_mono.value ? "MONO: ON" : "MONO: OFF";
+        };
+        playBtn.onclick = () => { video.paused ? video.play() : video.pause(); playBtn.innerText = video.paused ? 'PLAY' : 'PAUSE'; resetUI(); };
         document.getElementById('file').onchange = e => handleFile(e.target.files[0]);
         document.getElementById('scrub-bar').onclick = e => video.currentTime = (e.offsetX / e.target.clientWidth) * video.duration;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
         setup();
     </script>
